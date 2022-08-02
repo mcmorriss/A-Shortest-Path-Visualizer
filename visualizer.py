@@ -1,3 +1,11 @@
+# Author: Michael Morriss
+# Date: July 25th, 2022
+# Description: This is a program that uses the pygame visual library to display a live
+# visualization of the A* (A-star) shortest path algorithm. The user is able to select
+# their own start/end coordinates on a 50 x 50 grid, as well as able to draw borders
+# on the grid to increase the difficulty of the path.
+
+
 import pygame
 import math
 from queue import PriorityQueue
