@@ -1,18 +1,18 @@
-# Author: Michael Morriss
-# Date: July 25th, 2022
-# Description: This is a program that uses the pygame visual library to display a live
-# visualization of the A* (A-star) shortest path algorithm. The user is able to select
-# their own start/end coordinates on a 50 x 50 grid, as well as able to draw borders
-# on the grid to increase the difficulty of the path.
-
-
 import pygame
 import math
 from queue import PriorityQueue
+pygame.font.init()
 
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption("A-Star Path Finding Algorithm")
+
+TEXT_FONT = pygame.font.SysFont('ariel', 35)
+TEXT_FONT_2 = pygame.font.SysFont('ariel', 25)
+ORANGE_FONT = pygame.font.SysFont('ariel', 25)
+TURQ_FONT = pygame.font.SysFont('ariel', 25)
+GREEN_FONT = pygame.font.SysFont('ariel', 25)
+RED_FONT = pygame.font.SysFont('ariel', 25)
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -26,7 +26,7 @@ GREY = (128, 128, 128)
 TURQUOISE = (64, 224, 208)
 
 
-class Node:
+class Spot:
     def __init__(self, row, col, width, total_rows):
         """Initialize node variables."""
         self.row = row
@@ -66,20 +66,20 @@ class Node:
         """Changes node color back to white."""
         self.color = WHITE
 
-    def make_open(self):
-        self.color = GREEN
+    def make_start(self):
+        self.color = ORANGE
 
     def make_closed(self):
         self.color = RED
+
+    def make_open(self):
+        self.color = GREEN
 
     def make_barrier(self):
         self.color = BLACK
 
     def make_end(self):
         self.color = TURQUOISE
-
-    def make_start(self):
-        self.color = ORANGE
 
     def make_path(self):
         self.color = PURPLE
@@ -106,24 +106,65 @@ class Node:
         return False
 
 
-def heuristic(p1, p2):
+def h(p1, p2):
     x1, y1 = p1
-    x2, y2, = p2
+    x2, y2 = p2
     return abs(x1 - x2) + abs(y1 - y2)
+
+
+def recounstruct_path(came_from, current, draw):
+    while current in came_from:
+        current = came_from[current]
+        current.make_path()
+        draw()
+
 
 
 def algorithm(draw, grid, start, end):
     count = 0
     open_set = PriorityQueue()
     open_set.put((0, count, start))
-
     came_from = {}
-
     g_score = {spot: float("inf") for row in grid for spot in row}
     g_score[start] = 0
-
     f_score = {spot: float("inf") for row in grid for spot in row}
-    f_score[start] = heuristic(start.get_pos(), end.get_pos())
+    f_score[start] = h(start.get_pos(), end.get_pos())
+
+    open_set_hash = {start}
+
+    # Algorithm runs until open set is empty.
+    while not open_set.empty():
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        current = open_set.get()[2]
+        open_set_hash.remove(current)
+
+        if current == end:  # Reconstruct path if end is found.
+            recounstruct_path(came_from, end, draw)
+            end.make_end()
+            return True
+
+        for neighbor in current.neighbors:
+            temp_g_score = g_score[current] + 1
+
+            if temp_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = temp_g_score
+                f_score[neighbor] = temp_g_score + h(neighbor.get_pos(), end.get_pos())
+                if neighbor not in open_set_hash:
+                    count += 1
+                    open_set.put((f_score[neighbor], count, neighbor))
+                    open_set_hash.add(neighbor)
+                    neighbor.make_open()
+
+        draw()
+
+        if current != start:
+            current.make_closed()  # Close current node because it has been visited.
+
+    return False  # Path not found.
 
 
 def make_grid(rows, width):
@@ -133,7 +174,7 @@ def make_grid(rows, width):
     for i in range(rows):
         grid.append([])
         for j in range(rows):
-            node = Node(i, j, gap, rows)
+            node = Spot(i, j, gap, rows)
             grid[i].append(node)
 
     return grid
@@ -157,6 +198,42 @@ def draw(win, grid, rows, width):
             node.draw(win)
 
     draw_grid(win, rows, width)
+
+    pygame.draw.rect(win, BLACK, pygame.Rect(0,675,WIDTH,200))
+    instructions = TEXT_FONT.render("Instructions: ", 1, YELLOW)
+
+    instructions_2 = TEXT_FONT_2.render(
+        "Left-click once to create the starting node, which will be ",
+        1, WHITE)
+    orange_text = ORANGE_FONT.render("orange.", 1, ORANGE)
+
+    instructions_3 = TEXT_FONT_2.render(
+        "Left-click again to create the end node, which will be ",
+        1, WHITE)
+    turq_text = TURQ_FONT.render("turquoise.", 1, TURQUOISE)
+
+    instructions_4 = TEXT_FONT_2.render(
+        "Optionally, create barriers by dragging the left click, which will be black.",
+        1, WHITE)
+    instructions_5 = TEXT_FONT_2.render(
+        "Then, press the [ Space Bar ] the execute the algorithm.",
+        1, WHITE)
+    instructions_6 = TEXT_FONT_2.render("Open Node = ", 1, WHITE)
+    green_text = GREEN_FONT.render("green", 1, GREEN)
+    instructions_7 = TEXT_FONT_2.render("Visited Node = ", 1, WHITE)
+    red_text = RED_FONT.render("red", 1, RED)
+    win.blit(instructions, (10, 680))
+    win.blit(instructions_2, (10, 705))
+    win.blit(orange_text, (instructions_2.get_width() + 10, 705))
+    win.blit(instructions_3, (10, 725))
+    win.blit(turq_text, (instructions_3.get_width() + 10, 725))
+    win.blit(instructions_4, (10, 745))
+    win.blit(instructions_5, (10, 765))
+    win.blit(instructions_6, (instructions_4.get_width() + 30, 705))
+    win.blit(green_text, (instructions_4.get_width() + 30 + instructions_6.get_width(), 705))
+    win.blit(instructions_7, (instructions_4.get_width() + 30, 725))
+    win.blit(red_text, (instructions_4.get_width() + 30 + instructions_7.get_width(), 725))
+
     pygame.display.update()
 
 
@@ -178,16 +255,12 @@ def main(win, width):
     end = None
 
     run = True
-    started = False
 
     while run:
         draw(win, grid, ROWS, width)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-
-            if started:
-                continue
 
             # If left mouse button is pressed:
             if pygame.mouse.get_pressed()[0]:
@@ -221,10 +294,10 @@ def main(win, width):
                     end = None
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and not started:
+                if event.key == pygame.K_SPACE and start and end:
                     for row in grid:
                         for spot in row:
-                            spot.update_neighbors()
+                            spot.update_neighbors(grid)
 
                     algorithm(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
@@ -232,8 +305,3 @@ def main(win, width):
 
 
 main(WIN, WIDTH)
-
-
-
-
-
