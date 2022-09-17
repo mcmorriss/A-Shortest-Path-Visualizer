@@ -2,8 +2,8 @@
 
 This progam uses a pygame GUI to allow a user to set two points, a starting and an ending points, and create optional barriers between them that allows the user to view an interesting representation of how the A* algorithm finds the shortest path between two nodes. There are several controls for the user such as: 
 
-Left click = create a start, end, and a barrier node. /n
-Right click = deletes/erases the nodes from the grid.
+Left click = create a start, end, and a barrier node. <br />
+Right click = deletes/erases the nodes from the grid. <br />
 Enter button = executes the algorithm with set nodes.
 
 
