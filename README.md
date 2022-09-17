@@ -1,6 +1,6 @@
 # A* Shortest Path Interactive Visualizer
 
-This progam uses a pygame GUI to allow a user to set two points, a starting and an ending points, and create optional barriers between them that allows the user to view an interesting representation of how the A* algorithm finds the shortest path between two nodes. <br /> There are several controls for the user such as: 
+This progam uses a pygame GUI to allow a user to set two points, a starting and an ending points, and create optional barriers between them that allows the user to view an interesting representation of how the A* algorithm finds the shortest path between two nodes. <br /><br /> There are several controls for the user such as: 
 
 Left click = create a start, end, and a barrier node. <br />
 Right click = deletes/erases the nodes from the grid. <br />
